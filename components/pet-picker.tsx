@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import { db } from '@/lib/db';
+import { ownedDb } from '@/lib/owned-db';
+import { requireUser } from '@/lib/session';
 import { Empty, PageHeader, PetAvatar } from './ui';
 export async function PetPicker() {
+  const db = ownedDb((await requireUser()).id);
   const pets = await db.pet.findMany({ orderBy: { name: 'asc' } });
   return (
     <>

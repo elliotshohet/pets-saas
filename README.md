@@ -1,176 +1,95 @@
-<div align="center">
-
 # Pets Dashboard
 
-### A home for every pet’s health story.
+A local app for pet profiles, medical history, private accounts, and product administration. Built with Next.js 16, React 19, TypeScript, Better Auth, Prisma 7, and PostgreSQL 18. Use fictional records.
 
-Pet profiles · Medical history · One workspace
+## Pricing
 
-**Next.js 16** &nbsp; / &nbsp; **React 19** &nbsp; / &nbsp; **TypeScript** &nbsp; / &nbsp; **PostgreSQL 18**
+Pets is **free for life**: $0, no subscription and no credit card required. All current features are included. Upload size and file-count limits still apply.
 
-[Quick start](#quick-start) · [Development](#development) · [Data](#data) · [Architecture](#architecture) · [Verification](docs/verification.md)
+## Start with Docker
 
-</div>
+You need Docker and Docker Compose. Check that `docker info` and `docker compose version` work first.
 
----
+1. Clone the repository and create your private configuration:
 
-## The essentials
+   ```sh
+   git clone https://github.com/elliotshohet/pets-dashboard.git
+   cd pets-dashboard
+   cp .env.example .env
+   chmod 600 .env
+   ```
 
-| Your pet family                           | Their care history                                               | The whole picture                                 |
-| ----------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- |
-| Add, view, edit, and delete pet profiles. | Manage dated records with categories, clinic details, and notes. | See every pet, record totals, and recent updates. |
+2. Generate an auth secret with `openssl rand -hex 32`. Paste it into `BETTER_AUTH_SECRET` in `.env`. Set `DEMO_PASSWORD` to a private password of 12–128 characters. Keep `ADMIN_EMAIL` equal to `DEMO_EMAIL` to enable admin access for the demo account. Do not commit `.env`.
 
-Search pets by name, breed, or species. Filter medical history by pet, category, clinic, and date range. Changes persist in PostgreSQL.
+3. Start the app:
 
-> **Scope:** The committed app implements pet and medical-record CRUD, overview, search/filtering, and persistence. A portable medical-history summary is present in the local working tree but is not part of the committed release yet.
+   ```sh
+   docker compose up -d --build --wait
+   ```
 
-## Quick start
+4. Open [the app](http://127.0.0.1:3017) and sign in using `DEMO_EMAIL` and `DEMO_PASSWORD` from `.env`.
 
-Requires Docker with Compose and access to the Docker daemon.
+When `LOCAL_EMAIL_LOGIN=true` in development, enter any email without a password or name to open that account; new emails start empty workspaces. Email ownership is not verified, including for the admin email. This local demo mode is disabled in production.
 
-```sh
-git clone https://github.com/elliotshohet/pets-dashboard.git
-cd pets-dashboard
-docker compose up -d --build --wait
-```
+Use the address configured in `BETTER_AUTH_URL` consistently: authentication trusts that origin. Startup applies migrations, provisions the demo account, and seeds data. The app runs in development mode with Fast Refresh. No host Node.js installation is needed for this path.
 
-**Open [localhost:3017](http://127.0.0.1:3017).** Compose runs the Next.js development server with the project folder mounted into the container. Saving code triggers Fast Refresh without rebuilding. Startup generates Prisma, applies migrations and seeds an empty database. No API keys or external accounts are needed; fonts are served locally.
+## LAN access
 
-The app and database bind to localhost on ports **3017** and **55437**. Data persists in the `pets_data` volume. `docker-compose` can be used in place of `docker compose`.
+Set `BETTER_AUTH_URL` in `.env` to `http://<this-computer-LAN-IP>:3017`, then run `docker compose up -d --wait app`. Open that same URL on devices connected to your LAN. The current host address is `http://192.168.0.82:3017`; DHCP may change it. The development asset origin follows `BETTER_AUTH_URL`.
 
-<details>
-<summary><strong>Stop, restart, or inspect logs</strong></summary>
+With `LOCAL_EMAIL_LOGIN=true` in development, LAN access accepts an email alone and creates an empty account if it does not exist. Emails are not verified; anyone on the LAN can open any account by entering its email, including admin accounts. Credential prefill remains disabled at a LAN auth URL. PostgreSQL remains accessible only from this computer.
 
-```sh
-docker compose stop
-docker compose up -d --wait
-docker compose logs -f app
-```
+## Try it
 
-`stop` preserves data. `down -v` deletes the database volume.
+The public landing page at `/` introduces Pets and links to login/signup. Successful authentication opens `/dashboard`.
 
-</details>
+- **Overview (`/dashboard`)**: your pets, record totals, and recent care.
+- **My pets (`/pets`)**: search, create, edit, and delete pet profiles.
+- **Medical history (`/records`)**: search and filter records by pet, category, clinic, and dates.
+- **Sign up (`/sign-up`)**: create a new empty private workspace.
+- **Admin (`/admin`)**: separate administrator navigation, product metrics, account search by name/email, and account care histories with administrator CRUD. Members cannot access it.
 
-## Review the app
+Administrators can see account names, emails, pet profiles and medical records. These views are not anonymized. Ordinary members see only their own records; admins manage another account through dedicated admin actions; member actions still enforce ownership.
 
-1. Open the overview to see your pets, record totals, and recent updates. A freshly seeded workspace contains four fictional pets and sixteen records; an existing workspace may differ.
-2. Open **My pets**, search or filter the list, and view a pet’s medical history.
-3. Add or edit a pet and a record, then refresh to verify persistence.
-4. Open **Medical history** to combine pet, category, clinic, and date filters.
-5. Use a temporary record to inspect validation and the delete confirmation.
+## Administrator access
 
-## Development
+Sign in at [the login page](http://127.0.0.1:3017/sign-in), then open [the admin dashboard](http://127.0.0.1:3017/admin) directly. The user sidebar has no admin link. Admin navigation contains Dashboard, Accounts, Care statistics, Onboarding, Data quality, Activity and System health. Operational activity starts when tracking is installed; seed history is not backfilled.
 
-The Compose app runs as the unprivileged `node` user. Source is bind-mounted at `/app`; separate container volumes keep `node_modules` and `.next` apart from host files. The PostgreSQL volume is unchanged. No production build runs during image creation or startup.
+The admin demo credentials are `DEMO_EMAIL` and `DEMO_PASSWORD` in your private `.env`; `ADMIN_EMAIL` must match the demo email at setup. This workspace's actual login is recorded in [the local credential note](docs/local-admin.md), which is ignored by Git and is not included in fresh clones. New installations choose credentials during setup. Local development can prefill the login form; production does not.
 
-For ordinary code edits, just save the file. After changing dependencies or the Dockerfile, rebuild and replace dependency/cache volumes:
+## Care organizer
 
-```sh
-docker compose up -d --build --renew-anon-volumes --wait app
-```
+Open a pet, then choose **Care organizer** for profile photos, private record documents, microchip/allergy/emergency details, prescribed medications, reminders and weight/observation logs. **Care summary** lets you select records and print/save a PDF. Dashboard reminders and calendar export help track user-entered schedules; email/push notifications are not enabled. See [the care workflow](docs/development.md#photos-documents-and-care-organizer).
 
-On this host, use `sg docker -c 'docker-compose up -d --build --renew-anon-volumes --wait app'` if the current session has not picked up Docker group membership. No sudo is needed. For schema edits, add a migration and restart the app, or run `docker compose exec app npm run db:setup`.
+## Seed data
 
-### Run Node.js directly
+The demo workspace starts with Maple, Milo, Clover and Mochi: **4 pets and 16 records**. An additional **1,000 fictional member accounts, 1,369 pets and 7,367 records** populate analytics. A fresh seed therefore has 1,001 accounts, 1,373 pets and 7,383 records. Counts change as you use the app.
 
-Requires Node.js **22.12+** (24 recommended) and PostgreSQL.
+Synthetic addresses use `example.test`. Each synthetic account has an independently generated password hash; there is no shared login password or fabricated session activity. Repeated startup preserves credentials and populated workspaces. Changing `DEMO_PASSWORD` in `.env` does not change an existing account's password.
 
-```sh
-cp .env.example .env
-npm ci
-docker compose stop app
-docker compose up -d --wait db
-npm run db:setup
-npm run dev
-```
+## Common commands
 
-Using an existing PostgreSQL instance? Set `DATABASE_URL` in `.env` and skip the Compose commands. Keep `.env` private. Run the app as your regular user.
+Run these from the repository folder:
 
-| Task                    | Command                                        |
-| ----------------------- | ---------------------------------------------- |
-| Production build        | `npm run build`                                |
-| Start production server | `npm start`                                    |
-| Browse the database     | `npx prisma studio --browser none --port 5555` |
-| Apply schema updates    | `npm run db:generate && npm run db:migrate`    |
+| Task                             | Command                                                        |
+| -------------------------------- | -------------------------------------------------------------- |
+| Check service health             | `docker compose ps`                                            |
+| Follow app logs                  | `docker compose logs -f app`                                   |
+| Stop without losing data         | `docker compose stop`                                          |
+| Start again                      | `docker compose up -d --wait`                                  |
+| Rebuild after dependency changes | `docker compose up -d --build --renew-anon-volumes --wait app` |
+| Run unit tests                   | `docker compose exec -T app npm test`                          |
+| Run integration tests            | `docker compose exec -T app npm run test:integration`          |
 
-These commands run on the host with local dependencies and a configured database. Production commands remain optional checks; Compose does not use them. Studio opens at [localhost:5555](http://localhost:5555).
+The app listens on all network interfaces on port **3017** and PostgreSQL binds to localhost **55437**. Database data lives in the named `pets_data` volume. `docker compose down` preserves it; **`docker compose down -v` deletes it**.
 
-## Data
+## Documentation
 
-**4 pets · 16 records · Generated CUIDs**
+- [Development and troubleshooting](docs/development.md): environment variables, native Node setup, migrations, seeds, checks.
+- [Database and schema](docs/database.md): Prisma Studio, SQL inspection, connection details, tables and relationships.
+- [Architecture](docs/architecture.md): routes, access control, models, metrics, and tradeoffs.
+- [Verification](docs/verification.md): completed checks and remaining limitations.
+- [MVP roadmap](docs/mvp-roadmap.md): competitor research and prioritized enhancement milestones.
+- [AI use](docs/ai-use.md): how Codex assisted, what was verified, and runtime boundaries.
 
-| Maple            | Milo                | Clover             | Mochi       |
-| ---------------- | ------------------- | ------------------ | ----------- |
-| Golden retriever | Australian shepherd | Domestic shorthair | Holland lop |
-| 6 records        | 5 records           | 3 records          | 2 records   |
-
-The seed covers checkups, vaccinations, medication, procedures, and lab results. Visit dates are relative to the seed day. Normal seeding skips a populated workspace.
-
-<details>
-<summary><strong>Reset to the seed dataset</strong></summary>
-
-With local dependencies and `.env` configured:
-
-```sh
-npm run db:seed -- --reset
-```
-
-Or inside the running Compose app:
-
-```sh
-docker compose exec app npm run db:seed -- --reset
-```
-
-**Replaces all pets and records.** The reset is transactional: failure rolls back the changes. New IDs invalidate old record links. Refresh Prisma Studio afterward.
-
-</details>
-
-> **Upgrading an older checkout?** The removal migrations delete retired feature fields and attachments. Back up that data before applying them if it is needed. Core pet profiles and medical records remain.
-
-## Architecture
-
-```mermaid
-flowchart LR
-    UI[React form] --> Action[Server Action]
-    Action --> Validation[Zod validation]
-    Validation --> Prisma[Prisma]
-    Prisma --> DB[(PostgreSQL)]
-    DB --> Page[Server Component]
-    Page --> UI
-```
-
-| Model           | Contents                                                    |
-| --------------- | ----------------------------------------------------------- |
-| `Pet`           | Name, species, optional breed, birth date, and notes        |
-| `MedicalRecord` | Pet ID, title, category, date, optional provider, and notes |
-
-Both models have generated IDs and timestamps. Record mutations are scoped to the pet. Deleting a pet cascades to its records after confirmation. Server Actions revalidate pages after changes and preserve submitted values on validation errors.
-
-**Deliberate tradeoffs**
-
-- **Local, single-user scope.** No authentication. A multi-user version needs ownership checks on every read and write.
-- **Calendar dates.** PostgreSQL `DATE`, with `America/Los_Angeles` used for today. Future birthdays and record dates are rejected.
-- **Small histories.** Pet-directory and cross-pet history filters run in PostgreSQL; individual pet histories are loaded and filtered in memory. Larger datasets would need database filtering and pagination.
-
-## Quality checks
-
-```sh
-npm test
-npm run test:integration
-npm run lint
-npm run typecheck
-npm run format:check
-npm run build
-```
-
-Integration tests use the configured database and clean up their temporary rows. See [verification notes](docs/verification.md) for results and testing limits.
-
----
-
-**Built with AI assistance.** OpenAI Codex assisted with planning, implementation, styling, documentation, and verification. No AI service runs inside the app. Supporting tools include Prisma, Zod, Lucide, Pretendard, ESLint, Prettier, and the Node test runner.
-
-[Architecture notes](docs/architecture.md) · [Verification notes](docs/verification.md)
-
-## Submission status
-
-The repository includes setup instructions, seed data, tests, and architecture notes. The committed release does not yet include the required candidate-selected extra feature. A portable medical-history summary is being developed locally and has not been committed or fully verified. No Loom link is stored in this repository; whether a recording or recruiter submission exists externally has not been checked.
+This is a local prototype. Email verification, password recovery, MFA, sharing, and clinic roles are not implemented. Real human health data requires a separate security and operational readiness plan.

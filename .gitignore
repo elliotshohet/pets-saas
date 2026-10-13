@@ -8,3 +8,6 @@ coverage/
 *.tsbuildinfo
 output/
 tmp/
+
+# Private local administrator login
+docs/local-admin.md

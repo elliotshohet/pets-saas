@@ -1,4 +1,4 @@
-import test, { after } from 'node:test';
+import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { db } from '../../lib/db';
 import { savePet, saveRecord, deletePet, deleteRecord } from '../../lib/mutations';
@@ -16,33 +16,44 @@ const recordInput = {
   provider: 'Test clinic',
   notes: '',
 };
-after(() => db.$disconnect());
+let ownerId: string;
+before(async () => {
+  ownerId = (
+    await db.user.create({
+      data: { id: crypto.randomUUID(), name: 'Test', email: `${crypto.randomUUID()}@example.test` },
+    })
+  ).id;
+});
+after(async () => {
+  await db.user.delete({ where: { id: ownerId } });
+  await db.$disconnect();
+});
 test('CRUD, scoped record IDs, and cascade deletion persist in Postgres', async () => {
-  const pet = await savePet(null, petInput);
-  const other = await savePet(null, { ...petInput, name: 'Other integration pet' });
+  const pet = await savePet(ownerId, null, petInput);
+  const other = await savePet(ownerId, null, { ...petInput, name: 'Other integration pet' });
   try {
-    await savePet(pet.id, { ...petInput, name: 'Edited test pet' });
+    await savePet(ownerId, pet.id, { ...petInput, name: 'Edited test pet' });
     assert.equal(
       (await db.pet.findUniqueOrThrow({ where: { id: pet.id } })).name,
       'Edited test pet',
     );
-    const record = await saveRecord(pet.id, null, recordInput);
+    const record = await saveRecord(ownerId, pet.id, null, recordInput);
     assert.equal(
       (await db.pet.findUniqueOrThrow({ where: { id: pet.id }, include: { records: true } }))
         .records.length,
       1,
     );
-    await assert.rejects(saveRecord(other.id, record.id, recordInput));
-    await assert.rejects(deleteRecord(other.id, record.id));
-    await saveRecord(pet.id, record.id, { ...recordInput, notes: 'Updated notes' });
+    await assert.rejects(saveRecord(ownerId, other.id, record.id, recordInput));
+    await assert.rejects(deleteRecord(ownerId, other.id, record.id));
+    await saveRecord(ownerId, pet.id, record.id, { ...recordInput, notes: 'Updated notes' });
     assert.equal(
       (await db.medicalRecord.findUniqueOrThrow({ where: { id: record.id } })).notes,
       'Updated notes',
     );
-    await deleteRecord(pet.id, record.id);
+    await deleteRecord(ownerId, pet.id, record.id);
     assert.equal(await db.medicalRecord.count({ where: { petId: pet.id } }), 0);
-    await saveRecord(pet.id, null, recordInput);
-    await deletePet(pet.id);
+    await saveRecord(ownerId, pet.id, null, recordInput);
+    await deletePet(ownerId, pet.id);
     assert.equal(
       await db.medicalRecord.count({ where: { petId: pet.id } }),
       0,
@@ -54,6 +65,6 @@ test('CRUD, scoped record IDs, and cascade deletion persist in Postgres', async 
 });
 test('invalid data is rejected before writing', async () => {
   const count = await db.pet.count();
-  await assert.rejects(savePet(null, { ...petInput, name: ' ' }));
+  await assert.rejects(savePet(ownerId, null, { ...petInput, name: ' ' }));
   assert.equal(await db.pet.count(), count);
 });

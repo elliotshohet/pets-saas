@@ -74,8 +74,22 @@ type PetValues = {
   birthDate: string;
   notes: string;
 };
-export function PetForm({ pet, currentDay }: { pet?: PetValues; currentDay: string }) {
-  const [state, action, pending] = useActionState(savePetAction.bind(null, pet?.id ?? null), {});
+type SaveAction = (state: ActionState, form: FormData) => Promise<ActionState>;
+export function PetForm({
+  pet,
+  currentDay,
+  saveAction,
+  cancelHref,
+}: {
+  pet?: PetValues;
+  currentDay: string;
+  saveAction?: SaveAction;
+  cancelHref?: string;
+}) {
+  const [state, action, pending] = useActionState(
+    saveAction ?? savePetAction.bind(null, pet?.id ?? null),
+    {},
+  );
   return (
     <form action={action} className="panel form-panel" aria-busy={pending}>
       <p className="form-help">
@@ -142,7 +156,7 @@ export function PetForm({ pet, currentDay }: { pet?: PetValues; currentDay: stri
         </Field>
       </fieldset>
       <div className="form-footer">
-        <Link className="button secondary" href={pet ? `/pets/${pet.id}` : '/pets'}>
+        <Link className="button secondary" href={cancelHref ?? (pet ? `/pets/${pet.id}` : '/pets')}>
           Cancel
         </Link>
         <span className="sr-only" role="status">
@@ -167,17 +181,21 @@ export function RecordForm({
   record,
   currentDay,
   vaccination = false,
+  saveAction,
+  cancelHref,
 }: {
   petId: string;
   record?: RecordValues;
   vaccination?: boolean;
   currentDay: string;
+  saveAction?: SaveAction;
+  cancelHref?: string;
 }) {
   const [category, setCategory] = useState(
     record?.category ?? (vaccination ? 'VACCINATION' : 'CHECKUP'),
   );
   const [state, action, pending] = useActionState(
-    saveRecordAction.bind(null, petId, record?.id ?? null),
+    saveAction ?? saveRecordAction.bind(null, petId, record?.id ?? null),
     {},
   );
   return (
@@ -256,7 +274,7 @@ export function RecordForm({
         </Field>
       </fieldset>
       <div className="form-footer">
-        <Link className="button secondary" href={`/pets/${petId}`}>
+        <Link className="button secondary" href={cancelHref ?? `/pets/${petId}`}>
           Cancel
         </Link>
         <span className="sr-only" role="status">

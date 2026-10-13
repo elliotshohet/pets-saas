@@ -13,7 +13,17 @@ import {
 } from 'lucide-react';
 import type { Pet, MedicalRecord } from '@prisma/client';
 import { ageLabel } from '@/lib/dates';
-export function PetAvatar({ species, large = false }: { species: string; large?: boolean }) {
+export function PetAvatar({
+  species,
+  large = false,
+  photoUrl,
+  name,
+}: {
+  species: string;
+  large?: boolean;
+  photoUrl?: string | null;
+  name?: string;
+}) {
   const Icon =
     species === 'Dog'
       ? Dog
@@ -26,16 +36,24 @@ export function PetAvatar({ species, large = false }: { species: string; large?:
             : PawPrint;
   return (
     <span className={`pet-avatar ${species.toLowerCase()} ${large ? 'large' : ''}`}>
-      <span className="portrait-halo" aria-hidden="true" />
-      {large ? (
-        <PetPortrait species={species} />
+      {photoUrl ? (
+        // Private uploaded photos are delivered by the authorized media route.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt={name || `${species} photo`} loading="lazy" />
       ) : (
-        <Icon size={25} strokeWidth={1.5} aria-hidden="true" />
-      )}
-      {large && (
-        <span className="portrait-spark" aria-hidden="true">
-          ✦
-        </span>
+        <>
+          <span className="portrait-halo" aria-hidden="true" />
+          {large ? (
+            <PetPortrait species={species} />
+          ) : (
+            <Icon size={25} strokeWidth={1.5} aria-hidden="true" />
+          )}
+          {large && (
+            <span className="portrait-spark" aria-hidden="true">
+              ✦
+            </span>
+          )}
+        </>
       )}
     </span>
   );
@@ -122,7 +140,7 @@ export function PetCard({ pet }: { pet: Pet & { records: MedicalRecord[] } }) {
   return (
     <Link href={`/pets/${pet.id}`} className="pet-card">
       <div className="pet-card-top">
-        <PetAvatar species={pet.species} large />
+        <PetAvatar species={pet.species} large photoUrl={pet.photoUrl} name={pet.name} />
         <ArrowRight size={19} />
       </div>
       <h3>{pet.name}</h3>

@@ -1,3 +1,6 @@
+import { seedPhotos } from './seed-photos';
+import { seedPopulation } from './population';
+import { demoOwner } from '../scripts/demo-owner';
 import { db } from '../lib/db';
 import { today } from '../lib/dates';
 import type { Prisma } from '@prisma/client';
@@ -147,33 +150,40 @@ const fixtures = [
   },
 ];
 async function seed() {
+  const owner = await demoOwner();
   const reset = process.argv.includes('--reset');
   const result = await db.$transaction(async (tx) => {
-    if (!reset && (await tx.pet.count())) return null;
-    // Explicit reset replaces all local pet data; normal startup preserves existing work.
-    if (reset) await tx.pet.deleteMany();
+    if (!reset && (await tx.pet.count({ where: { ownerId: owner.id } }))) return null;
+    // Explicit reset replaces only demo pet data; normal startup preserves existing work.
+    if (reset) await tx.pet.deleteMany({ where: { ownerId: owner.id } });
     for (const fixture of fixtures) {
       const { records, ...profile } = fixture;
       await tx.pet.create({
         data: {
           ...profile,
+          ownerId: owner.id,
           records: {
             create: records,
           },
         },
       });
     }
-    return { pets: await tx.pet.count(), records: await tx.medicalRecord.count() };
+    return {
+      pets: await tx.pet.count({ where: { ownerId: owner.id } }),
+      records: await tx.medicalRecord.count({ where: { pet: { ownerId: owner.id } } }),
+    };
   });
   console.log(
     result
       ? `Seeded ${result.pets} pets and ${result.records} medical records.`
-      : 'Workspace already has pets; seed skipped. Use --reset to replace all pet data.',
+      : 'Workspace already has pets; seed skipped. Use --reset to replace demo pet data.',
   );
 }
 seed()
-  .catch((error) => {
-    console.error('Database seed failed:', error);
+  .then(() => seedPopulation())
+  .then(() => seedPhotos())
+  .catch(() => {
+    console.error('Database seed failed.');
     process.exitCode = 1;
   })
   .finally(() => db.$disconnect());
