@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+}
+enum Category {
+  CHECKUP
+  VACCINATION
+  MEDICATION
+  PROCEDURE
+  OTHER
+}
+model Pet {
+  id        String   @id @default(cuid())
+  name      String
+  species   String
+  breed     String?
+  birthDate DateTime? @db.Date
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  records   MedicalRecord[]
+}
+model MedicalRecord {
+  id                  String    @id @default(cuid())
+  petId               String
+  pet                 Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  category            Category
+  title               String
+  date                DateTime  @db.Date
+  provider            String?
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  @@index([petId, date])
+}
