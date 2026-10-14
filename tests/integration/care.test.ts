@@ -8,7 +8,7 @@ const form = (data: Record<string, string | File>) => {
   for (const [k, v] of Object.entries(data)) f.set(k, v);
   return f;
 };
-test('care files, essentials, tasks and observations persist with ownership and retry checks', async () => {
+test('care files, essentials, observations persist with ownership checks', async () => {
   const users = await Promise.all(
     ['USER', 'USER', 'ADMIN'].map((role) =>
       db.user.create({
@@ -125,36 +125,6 @@ test('care files, essentials, tasks and observations persist with ownership and 
     await careOperation(
       a.id,
       pet.id,
-      'task',
-      form({
-        title: 'Daily medication',
-        kind: 'MEDICATION',
-        dueDate: '2026-01-01',
-        timezone: 'America/Los_Angeles',
-        intervalDays: '1',
-        instructions: 'Fixture',
-      }),
-    );
-    const task = await db.careTask.findFirstOrThrow({ where: { petId: pet.id } });
-    const complete = form({ id: task.id, scheduledDate: '2026-01-01' });
-    await Promise.all([
-      careOperation(a.id, pet.id, 'complete', complete),
-      careOperation(a.id, pet.id, 'complete', complete),
-    ]);
-    const next = await db.careTask.findUniqueOrThrow({ where: { id: task.id } });
-    assert.ok(next.dueDate > task.dueDate);
-    await careOperation(a.id, pet.id, 'complete', complete);
-    assert.equal(
-      (await db.careTask.findUniqueOrThrow({ where: { id: task.id } })).dueDate.getTime(),
-      next.dueDate.getTime(),
-    );
-    await assert.rejects(
-      careOperation(b.id, pet.id, 'snooze', form({ id: task.id, dueDate: '2026-12-01' })),
-    );
-    await careOperation(a.id, pet.id, 'snooze', form({ id: task.id, dueDate: '2026-12-01' }));
-    await careOperation(
-      a.id,
-      pet.id,
       'log',
       form({ date: '2026-01-01', weightKg: '4.2', observation: 'Eating normally' }),
     );
@@ -171,7 +141,6 @@ test('care files, essentials, tasks and observations persist with ownership and 
     assert.equal((await db.pet.findUniqueOrThrow({ where: { id: pet.id } })).photoUrl, '');
     await db.pet.delete({ where: { id: pet.id } });
     assert.equal(await db.petMedia.count({ where: { petId: pet.id } }), 0);
-    assert.equal(await db.careTask.count({ where: { petId: pet.id } }), 0);
     assert.equal(await db.medicationPlan.count({ where: { petId: pet.id } }), 0);
   } finally {
     await db.pet.deleteMany({ where: { ownerId: { in: users.map((u) => u.id) } } });

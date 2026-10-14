@@ -1,3 +1,4 @@
+import { ActionIcon } from '@/components/action-icon';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/session';
 import { adminOverview } from '@/lib/admin-data';
@@ -90,9 +91,11 @@ export default async function Care() {
         </p>
         <div className="dashboard-actions">
           <Link className="button secondary" href="/admin/accounts?filter=empty">
+            <ActionIcon label="Accounts getting started" />
             Accounts getting started
           </Link>
           <Link className="button secondary" href="/admin/accounts?filter=families">
+            <ActionIcon label="Accounts with pets" />
             Accounts with pets
           </Link>
         </div>

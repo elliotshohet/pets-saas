@@ -1,4 +1,5 @@
 'use client';
+import { ActionIcon } from '@/components/action-icon';
 import Link from 'next/link';
 export default function ErrorPage({ retry }: { retry: () => void }) {
   return (
@@ -9,9 +10,11 @@ export default function ErrorPage({ retry }: { retry: () => void }) {
         return to the overview.
       </p>
       <button className="button primary" onClick={retry}>
+        <ActionIcon label="Try again" />
         Try again
       </button>
       <Link href="/" className="button secondary">
+        <ActionIcon label="Back to overview" />
         Back to overview
       </Link>
     </div>

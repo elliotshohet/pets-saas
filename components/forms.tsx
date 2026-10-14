@@ -1,4 +1,5 @@
 'use client';
+import { ActionIcon } from '@/components/action-icon';
 import { useActionState, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Check, LoaderCircle, Trash2 } from 'lucide-react';
@@ -157,6 +158,7 @@ export function PetForm({
       </fieldset>
       <div className="form-footer">
         <Link className="button secondary" href={cancelHref ?? (pet ? `/pets/${pet.id}` : '/pets')}>
+          <ActionIcon label="Cancel" />
           Cancel
         </Link>
         <span className="sr-only" role="status">
@@ -275,6 +277,7 @@ export function RecordForm({
       </fieldset>
       <div className="form-footer">
         <Link className="button secondary" href={cancelHref ?? `/pets/${petId}`}>
+          <ActionIcon label="Cancel" />
           Cancel
         </Link>
         <span className="sr-only" role="status">
@@ -332,9 +335,10 @@ export function DeleteButton({
               disabled={pending}
               onClick={() => dialog.current?.close()}
             >
-              Keep it
+              <ActionIcon label="Cancel" /> Keep it
             </button>
             <button type="submit" className="button danger" disabled={pending}>
+              <ActionIcon label="Delete" />
               {pending ? 'Deleting…' : 'Yes, delete'}
             </button>
           </div>

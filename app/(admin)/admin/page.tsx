@@ -1,3 +1,4 @@
+import { ActionIcon } from '@/components/action-icon';
 import Link from 'next/link';
 import { AdminForecast } from '@/components/admin-forecast';
 import { Users, PawPrint, FileHeart, ArrowUpRight } from 'lucide-react';
@@ -178,9 +179,11 @@ export default async function Admin() {
         <p>Find an account or dig into the care records behind these metrics.</p>
         <div className="dashboard-actions">
           <Link className="button primary" href="/admin/accounts">
+            <ActionIcon label="Browse accounts" />
             Browse accounts
           </Link>
           <Link className="button secondary" href="/admin/care">
+            <ActionIcon label="Care statistics" />
             Care statistics
           </Link>
         </div>

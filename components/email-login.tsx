@@ -1,4 +1,5 @@
 'use client';
+import { ActionIcon } from '@/components/action-icon';
 import { useState } from 'react';
 import { Brand } from './brand';
 export function EmailLogin({ defaultEmail }: { defaultEmail?: string }) {
@@ -20,13 +21,20 @@ export function EmailLogin({ defaultEmail }: { defaultEmail?: string }) {
             setError('');
             const email = String(new FormData(event.currentTarget).get('email')).trim();
             try {
-              const response = await fetch('/api/auth/local-email', {
+              const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ email }),
               });
-              if (!response.ok) setError('Unable to log in. Check the email or try again later.');
-              else window.location.replace('/dashboard');
+              if (!response.ok) {
+                const failure = await response.json().catch(() => ({}));
+                setError(
+                  failure.message || 'Unable to log in. Check the email or try again later.',
+                );
+              } else {
+                const data = await response.json();
+                window.location.replace(data.redirect || '/dashboard');
+              }
             } catch {
               setError('Unable to connect. Please try again.');
             } finally {
@@ -47,13 +55,11 @@ export function EmailLogin({ defaultEmail }: { defaultEmail?: string }) {
           </label>
           {error && <p role="alert">{error}</p>}
           <button className="button primary" disabled={pending}>
+            <ActionIcon label="Continue" />
             {pending ? 'Opening workspace…' : 'Continue'}
           </button>
         </form>
-        <p className="form-help">
-          Local demo: emails are not verified. Anyone can open any account, including admin
-          accounts.
-        </p>
+        <p className="form-help">No password required. New emails create new workspaces.</p>
       </div>
       <footer className="auth-footer">Made for the ones who make your day.</footer>
     </main>

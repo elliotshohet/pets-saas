@@ -1,3 +1,4 @@
+import { ActionIcon } from '@/components/action-icon';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/session';
@@ -83,7 +84,10 @@ export default async function Page({
             {dateKey(r.date)} · {r.title}
           </label>
         ))}
-        <button className="button secondary">Update summary</button>
+        <button className="button secondary">
+          <ActionIcon label="Update summary" />
+          Update summary
+        </button>
       </form>
       <section className="panel admin-chart">
         <h2>Selected medical history</h2>

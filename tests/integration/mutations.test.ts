@@ -64,7 +64,7 @@ test('CRUD, scoped record IDs, and cascade deletion persist in Postgres', async 
   }
 });
 test('invalid data is rejected before writing', async () => {
-  const count = await db.pet.count();
+  const count = await db.pet.count({ where: { ownerId } });
   await assert.rejects(savePet(ownerId, null, { ...petInput, name: ' ' }));
-  assert.equal(await db.pet.count(), count);
+  assert.equal(await db.pet.count({ where: { ownerId } }), count);
 });

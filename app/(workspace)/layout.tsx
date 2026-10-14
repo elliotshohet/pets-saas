@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/session';
 import { ownedDb } from '@/lib/owned-db';
 import { Navigation } from '@/components/navigation';
+import { isAdmin } from '@/lib/admin-access';
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const pets = await ownedDb(user.id).pet.findMany({
@@ -9,7 +10,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   });
   return (
     <>
-      <Navigation email={user.email} pets={pets} />
+      <Navigation email={user.email} pets={pets} administrator={await isAdmin(user.id)} />
       <div className="main-shell">
         <div className="topbar">
           <span>

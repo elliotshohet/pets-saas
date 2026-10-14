@@ -10,9 +10,10 @@ import {
   Rabbit,
   Search,
   HeartPulse,
+  Cake,
 } from 'lucide-react';
 import type { Pet, MedicalRecord } from '@prisma/client';
-import { ageLabel } from '@/lib/dates';
+import { ageLabel, daysUntilBirthday } from '@/lib/dates';
 export function PetAvatar({
   species,
   large = false,
@@ -137,6 +138,7 @@ export function SearchBox({ placeholder, value }: { placeholder: string; value?:
   );
 }
 export function PetCard({ pet }: { pet: Pet & { records: MedicalRecord[] } }) {
+  const birthdayDays = daysUntilBirthday(pet.birthDate);
   return (
     <Link href={`/pets/${pet.id}`} className="pet-card">
       <div className="pet-card-top">
@@ -147,6 +149,18 @@ export function PetCard({ pet }: { pet: Pet & { records: MedicalRecord[] } }) {
       <p>
         {pet.breed || pet.species} <span className="dot">·</span> {ageLabel(pet.birthDate)}
       </p>
+      {birthdayDays !== null && (
+        <div className="pet-birthday">
+          <Cake size={16} aria-hidden="true" />
+          <span>
+            {birthdayDays === 0
+              ? 'Birthday today!'
+              : birthdayDays === 1
+                ? 'Birthday tomorrow'
+                : `${birthdayDays} days until birthday`}
+          </span>
+        </div>
+      )}
       <div className="pet-card-footer">
         <span>
           <HeartPulse size={15} />

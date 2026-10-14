@@ -1,4 +1,5 @@
 'use client';
+import { ActionIcon } from '@/components/action-icon';
 import { useActionState, useEffect, useRef } from 'react';
 import { careAction } from '@/app/care-actions';
 export function CareForm({
@@ -69,7 +70,11 @@ export function CareForm({
         </p>
       )}
       {state.success && <p role="status">{state.success}</p>}
-      <button className="button secondary" disabled={pending}>
+      <button
+        className={`button ${operation === 'photo' ? 'primary' : operation.startsWith('remove-') || operation.startsWith('delete-') ? 'danger' : 'secondary'}`}
+        disabled={pending}
+      >
+        <ActionIcon label={label} />
         {pending ? 'Saving…' : label}
       </button>
     </form>
@@ -78,7 +83,7 @@ export function CareForm({
 export function PrintButton() {
   return (
     <button className="button primary no-print" onClick={() => window.print()}>
-      Print / Save PDF
+      <ActionIcon label="Print" /> Print / Save PDF
     </button>
   );
 }

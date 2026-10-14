@@ -1,3 +1,4 @@
+import { ActionIcon } from '@/components/action-icon';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/session';
 import { adminAccounts } from '@/lib/admin-data';
@@ -26,6 +27,9 @@ export default async function Accounts({
           <h1>Your community, at a glance.</h1>
           <p>Find an account and review its pet profiles and care history.</p>
         </div>
+        <Link className="button primary" href="/admin/accounts/new">
+          <ActionIcon label="Add member" /> Add member
+        </Link>
       </header>
       <section className="panel admin-directory" id="accounts">
         <div className="admin-section-heading">
@@ -58,7 +62,10 @@ export default async function Accounts({
               <option value="activated">Recording care</option>
             </select>
           </label>
-          <button className="button primary">Search</button>
+          <button className="button primary">
+            <ActionIcon label="Search" />
+            Search
+          </button>
           {(q || filter) && (
             <Link className="text-link" href="/admin/accounts">
               Clear
@@ -118,6 +125,7 @@ export default async function Accounts({
                 className="button secondary small"
                 href={href(directory.current - 1) + '#accounts'}
               >
+                <ActionIcon label="Previous" />
                 Previous
               </Link>
             )}
@@ -126,6 +134,7 @@ export default async function Accounts({
                 className="button secondary small"
                 href={href(directory.current + 1) + '#accounts'}
               >
+                <ActionIcon label="Next" />
                 Next
               </Link>
             )}

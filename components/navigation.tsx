@@ -1,30 +1,29 @@
 'use client';
-import { authClient } from '@/lib/auth-client';
+import { ActionIcon } from '@/components/action-icon';
 import { Brand } from './brand';
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   PawPrint,
-  FileHeart,
-  Heart,
   Plus,
   ShieldCheck,
   Users,
   BarChart3,
-  ClipboardCheck,
-  Activity,
-  Server,
   ListChecks,
+  UserRound,
+  LockKeyhole,
+  HelpCircle,
 } from 'lucide-react';
 export function Navigation({
-  email,
   area = 'workspace',
   pets = [],
+  administrator = false,
 }: {
   email: string;
   pets?: { id: string; name: string }[];
   area?: 'workspace' | 'admin';
+  administrator?: boolean;
 }) {
   const [signingOut, setSigningOut] = useState(false);
   const [logoutError, setLogoutError] = useState('');
@@ -33,9 +32,7 @@ export function Navigation({
     <>
       <aside className="sidebar">
         <Brand href="/dashboard" />
-        <div className="workspace-label">
-          {area === 'admin' ? 'Product administration' : 'Your Pet Family'}
-        </div>
+        {area === 'admin' && <div className="workspace-label">Product administration</div>}
         <nav aria-label="Main navigation">
           {(area === 'admin'
             ? [
@@ -43,11 +40,8 @@ export function Navigation({
                 { href: '/admin/accounts', label: 'Accounts', Icon: Users },
                 { href: '/admin/care', label: 'Care statistics', Icon: BarChart3 },
                 { href: '/admin/onboarding', label: 'Onboarding', Icon: ListChecks },
-                { href: '/admin/data-quality', label: 'Data quality', Icon: ClipboardCheck },
-                { href: '/admin/activity', label: 'Activity', Icon: Activity },
-                { href: '/admin/system-health', label: 'System health', Icon: Server },
               ]
-            : [{ href: '/dashboard', label: 'All pets', Icon: PawPrint }]
+            : []
           ).map(({ href, label, Icon }) => {
             const active =
               path === href ||
@@ -66,77 +60,81 @@ export function Navigation({
           })}
           {area === 'workspace' && (
             <>
-              <div className="pet-nav-list" role="group" aria-label="Your pets">
-                {pets.map((pet) => {
-                  const href = `/pets/${pet.id}`;
-                  const active = path === href || path.startsWith(href + '/');
-                  return (
-                    <Link
-                      key={pet.id}
-                      href={href}
-                      className={active ? 'nav-link active' : 'nav-link'}
-                      aria-current={active ? 'page' : undefined}
-                    >
-                      <PawPrint size={17} aria-hidden="true" />
-                      <span>{pet.name}</span>
-                    </Link>
-                  );
-                })}
+              <div className="sidebar-section" role="group" aria-labelledby="pet-nav-heading">
+                <h2 id="pet-nav-heading" className="sidebar-section-title">
+                  Pets
+                </h2>
+                <div className="pet-nav-list">
+                  {pets.map((pet) => {
+                    const href = `/pets/${pet.id}`;
+                    const active = path === href || path.startsWith(href + '/');
+                    return (
+                      <Link
+                        key={pet.id}
+                        href={href}
+                        className={active ? 'nav-link active' : 'nav-link'}
+                        aria-current={active ? 'page' : undefined}
+                      >
+                        <PawPrint size={17} aria-hidden="true" />
+                        <span>{pet.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+                <Link
+                  href="/pets/new"
+                  className={path === '/pets/new' ? 'nav-link active' : 'nav-link'}
+                  aria-current={path === '/pets/new' ? 'page' : undefined}
+                >
+                  <Plus size={19} /> Add pet
+                </Link>
               </div>
-              <Link
-                href="/pets/new"
-                className={path === '/pets/new' ? 'nav-link active' : 'nav-link'}
-                aria-current={path === '/pets/new' ? 'page' : undefined}
-              >
-                <Plus size={19} /> Add pet
-              </Link>
-              <Link
-                href="/records"
-                className={path === '/records' ? 'nav-link active' : 'nav-link'}
-                aria-current={path === '/records' ? 'page' : undefined}
-              >
-                <FileHeart size={19} /> All records
-              </Link>
             </>
           )}
         </nav>
-        <div className="sidebar-note">
-          <Heart size={21} />
-          <p>
-            A little care.
-            <br />
-            <strong>A happier life together.</strong>
-          </p>
-          <span>All their care, in one place.</span>
-        </div>
-        <div className="workspace-user">
-          <span className="user-avatar">
-            <PawPrint size={17} />
-          </span>
-          <div>
-            {email}
-            <button
-              className="text-link"
-              disabled={signingOut}
-              onClick={async () => {
-                setSigningOut(true);
-                setLogoutError('');
-                try {
-                  const result = await authClient.signOut();
-                  if (result.error) setLogoutError('Unable to sign out. Please try again.');
-                  else window.location.replace('/sign-in');
-                } catch {
-                  setLogoutError('Unable to connect. Please try again.');
-                } finally {
-                  setSigningOut(false);
-                }
-              }}
-            >
-              {signingOut ? 'Signing out…' : 'Sign out'}
-            </button>
-            {logoutError && <p role="alert">{logoutError}</p>}
+        <section className="sidebar-account" aria-label="Session">
+          {area === 'workspace' && (
+            <>
+              <h2 className="sidebar-section-title">My account</h2>
+              <Link href="/account" className="nav-link">
+                <UserRound size={18} /> Profile & access
+              </Link>
+              <Link href="/account#data" className="nav-link">
+                <LockKeyhole size={18} /> Data & privacy
+              </Link>
+              <Link href="/help" className="nav-link">
+                <HelpCircle size={18} /> Help & guide
+              </Link>
+            </>
+          )}
+          <button
+            className="nav-link account-logout"
+            disabled={signingOut}
+            onClick={async () => {
+              setSigningOut(true);
+              setLogoutError('');
+              try {
+                const result = await fetch('/api/logout', { method: 'POST' });
+                if (!result.ok) setLogoutError('Unable to sign out. Please try again.');
+                else window.location.replace('/sign-in');
+              } catch {
+                setLogoutError('Unable to connect. Please try again.');
+              } finally {
+                setSigningOut(false);
+              }
+            }}
+          >
+            <ActionIcon label="Sign out" /> {signingOut ? 'Logging out…' : 'Logout'}
+          </button>
+          {logoutError && <p role="alert">{logoutError}</p>}
+        </section>
+        {administrator && area !== 'admin' && (
+          <div className="sidebar-admin-footer">
+            <Link href="/admin" className="nav-link">
+              <ShieldCheck size={18} aria-hidden="true" /> Admin dashboard
+            </Link>
           </div>
-        </div>
+        )}
       </aside>
     </>
   );

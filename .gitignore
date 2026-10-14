@@ -9,5 +9,5 @@ coverage/
 output/
 tmp/
 
-# Private local administrator login
-docs/local-admin.md
+# Local runtime and preview artifacts
+.runtime/

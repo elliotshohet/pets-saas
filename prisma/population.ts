@@ -1,6 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import { randomBytes, createHash } from 'node:crypto';
-import { hashPassword } from 'better-auth/crypto';
+import { createHash } from 'node:crypto';
 import { db } from '../lib/db';
 import { today } from '../lib/dates';
 const first = [
@@ -384,7 +383,6 @@ export async function seedPopulation() {
         id: userId,
         name: `${firstname} ${surname}`,
         email: `${firstname.toLowerCase()}.${surname.toLowerCase()}${Math.floor(index / first.length) + 1}@example.test`,
-        emailVerified: false,
         role: 'USER',
         isSynthetic: true,
         createdAt: joined,
@@ -398,36 +396,9 @@ export async function seedPopulation() {
     console.log('Synthetic community already contains 1,000 accounts; preserved.');
     return;
   }
-  const accounts: {
-    id: string;
-    accountId: string;
-    providerId: string;
-    userId: string;
-    password: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }[] = [];
-  let cursor = 0;
-  await Promise.all(
-    Array.from({ length: 6 }, async () => {
-      while (cursor < entries.length) {
-        const entry = entries[cursor++];
-        accounts.push({
-          id: id('auth:' + entry.user.id),
-          accountId: entry.user.id,
-          providerId: 'credential',
-          userId: entry.user.id,
-          password: await hashPassword(randomBytes(32).toString('base64url')),
-          createdAt: entry.user.createdAt,
-          updatedAt: entry.user.createdAt,
-        });
-      }
-    }),
-  );
   await db.$transaction(
     async (tx) => {
       await tx.user.createMany({ data: entries.map((entry) => entry.user) });
-      await tx.account.createMany({ data: accounts });
       await tx.pet.createMany({ data: entries.flatMap((entry) => entry.pets) });
       const records = entries.flatMap((entry) => entry.records);
       for (let offset = 0; offset < records.length; offset += 1000)

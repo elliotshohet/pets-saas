@@ -1,11 +1,11 @@
 import 'server-only';
-import { headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { isAdmin } from './admin-access';
 import { notFound, redirect } from 'next/navigation';
-import { auth } from './auth';
+import { emailSessionUser } from './email-access';
+import { EMAIL_COOKIE } from './email-cookie';
 export async function getUser() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  return session?.user ?? null;
+  return emailSessionUser((await cookies()).get(EMAIL_COOKIE)?.value);
 }
 
 export async function requireUser() {

@@ -139,6 +139,7 @@ export async function adminAccount(userId: string, id: string) {
     select: {
       analyticsId: true,
       name: true,
+      role: true,
       email: true,
       isSynthetic: true,
       createdAt: true,
@@ -152,6 +153,7 @@ export async function adminAccount(userId: string, id: string) {
   return {
     id: row.analyticsId,
     label: row.name,
+    role: row.role,
     email: row.email,
     isSynthetic: row.isSynthetic,
     joinedMonth: month(row.createdAt),

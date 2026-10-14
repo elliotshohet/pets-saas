@@ -68,7 +68,7 @@ export async function saveRecordAction(
     return { ...failure(error), values: formValues(form) };
   }
   refresh();
-  redirect(`/pets/${petId}?notice=record-saved`);
+  redirect(`/pets/${petId}?tab=history&notice=record-saved`);
 }
 export async function deletePetAction(
   id: string,
@@ -99,5 +99,5 @@ export async function deleteRecordAction(
     return failure(error);
   }
   refresh();
-  redirect(`/pets/${petId}?notice=record-deleted`);
+  redirect(`/pets/${petId}?tab=history&notice=record-deleted`);
 }

@@ -1,9 +1,11 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
 }
+
 enum Category {
   CHECKUP
   VACCINATION
@@ -11,162 +13,132 @@ enum Category {
   PROCEDURE
   OTHER
 }
-model Pet {
+
+// Accounts and email-only sessions
+model User {
+  id          String         @id
+  name        String
+  email       String         @unique
+  analyticsId String         @unique @default(dbgenerated("(gen_random_uuid())::text"))
+  role        String         @default("USER")
+  isSynthetic Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  sessions    EmailSession[]
+  pets        Pet[]
+
+  @@index([createdAt])
+  @@index([role])
+}
+
+model EmailSession {
   id        String   @id @default(cuid())
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id])
-  name      String
-  species   String
-  breed     String?
-  birthDate DateTime? @db.Date
-  notes     String?
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  photoUrl String?
-  microchip String?
-  allergies String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// Pet profiles and medical records
+model Pet {
+  id               String           @id @default(cuid())
+  ownerId          String
+  owner            User             @relation(fields: [ownerId], references: [id])
+  name             String
+  species          String
+  breed            String?
+  birthDate        DateTime?        @db.Date
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  photoUrl         String?
+  microchip        String?
+  allergies        String?
   emergencyContact String?
-  medications String?
-  medicationPlans MedicationPlan[]
-  media PetMedia[]
-  tasks CareTask[]
-  logs CareLog[]
-  records   MedicalRecord[]
+  medications      String?
+  medicationPlans  MedicationPlan[]
+  media            PetMedia[]
+  logs             CareLog[]
+  records          MedicalRecord[]
+
   @@index([ownerId])
 }
+
 model MedicalRecord {
-  id                  String    @id @default(cuid())
-  petId               String
-  pet                 Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
-  category            Category
-  title               String
-  date                DateTime  @db.Date
-  provider            String?
-  notes               String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  attachments PetMedia[]
+  id               String     @id @default(cuid())
+  petId            String
+  pet              Pet        @relation(fields: [petId], references: [id], onDelete: Cascade)
+  category         Category
+  title            String
+  date             DateTime   @db.Date
+  provider         String?
+  notes            String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  sourceDocumentId String?
+  sourceDocument   PetMedia?  @relation("RecordSource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourcePage       Int?
+  sourceQuote      String?
+  attachments      PetMedia[]
+
   @@index([petId, date])
-}
-
-model User {
- id String @id
- name String
- email String @unique
- analyticsId String @unique @default(dbgenerated("gen_random_uuid()::text"))
- role String @default("USER")
- isSynthetic Boolean @default(false)
- emailVerified Boolean @default(false)
- image String?
- createdAt DateTime @default(now())
- updatedAt DateTime @updatedAt
- sessions Session[]
- accounts Account[]
- pets Pet[]
- @@index([createdAt])
- @@index([role])
-}
-model Session {
- id String @id
- expiresAt DateTime
- token String @unique
- createdAt DateTime @default(now())
- updatedAt DateTime @updatedAt
- ipAddress String?
- userAgent String?
- userId String
- user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- @@index([userId])
-}
-model Account {
- id String @id
- accountId String
- providerId String
- userId String
- user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- accessToken String?
- refreshToken String?
- idToken String?
- accessTokenExpiresAt DateTime?
- refreshTokenExpiresAt DateTime?
- scope String?
- password String?
- createdAt DateTime @default(now())
- updatedAt DateTime @updatedAt
- @@index([userId])
-}
-model Verification {
- id String @id
- identifier String
- value String
- expiresAt DateTime
- createdAt DateTime @default(now())
- updatedAt DateTime @updatedAt
- @@index([identifier])
-}
-model RateLimit {
- id String @id
- key String @unique
- count Int
- lastRequest BigInt
-}
-
-model OperationalEvent {
- id String @id @default(cuid())
- kind String
- actorId String?
- createdAt DateTime @default(now())
- @@index([createdAt])
- @@index([kind, createdAt])
+  @@index([sourceDocumentId])
 }
 
 model PetMedia {
- id String @id @default(cuid())
- petId String
- pet Pet @relation(fields:[petId], references:[id], onDelete:Cascade)
- recordId String?
- record MedicalRecord? @relation(fields:[recordId], references:[id], onDelete:Cascade)
- kind String
- name String
- mime String
- data Bytes
- createdAt DateTime @default(now())
- @@index([petId])
- @@index([recordId])
-}
-model CareTask {
- id String @id @default(cuid())
- petId String
- pet Pet @relation(fields:[petId], references:[id], onDelete:Cascade)
- title String
- kind String
- dueDate DateTime @db.Date
- timezone String @default("America/Los_Angeles")
- intervalDays Int?
- instructions String?
- completedAt DateTime?
- createdAt DateTime @default(now())
- @@index([petId,dueDate])
-}
-model CareLog {
- id String @id @default(cuid())
- petId String
- pet Pet @relation(fields:[petId], references:[id], onDelete:Cascade)
- date DateTime @db.Date
- weightKg Float?
- observation String?
- createdAt DateTime @default(now())
- @@index([petId,date])
+  id            String          @id @default(cuid())
+  petId         String
+  pet           Pet             @relation(fields: [petId], references: [id], onDelete: Cascade)
+  sourceRecords MedicalRecord[] @relation("RecordSource")
+  recordId      String?
+  record        MedicalRecord?  @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  kind          String
+  name          String
+  mime          String
+  data          Bytes
+  createdAt     DateTime        @default(now())
+
+  @@index([petId])
+  @@index([recordId])
 }
 
+// Care organizer
 model MedicationPlan {
- id String @id @default(cuid())
- petId String
- pet Pet @relation(fields:[petId],references:[id],onDelete:Cascade)
- name String
- dose String
- frequency String
- instructions String?
- createdAt DateTime @default(now())
- @@index([petId])
+  id           String   @id @default(cuid())
+  petId        String
+  pet          Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name         String
+  dose         String
+  frequency    String
+  instructions String?
+  createdAt    DateTime @default(now())
+
+  @@index([petId])
+}
+
+model CareLog {
+  id          String   @id @default(cuid())
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date
+  weightKg    Float?
+  observation String?
+  createdAt   DateTime @default(now())
+
+  @@index([petId, date])
+}
+
+// Operational activity
+model OperationalEvent {
+  id        String   @id @default(cuid())
+  kind      String
+  actorId   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([kind, createdAt])
 }

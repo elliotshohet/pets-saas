@@ -28,3 +28,19 @@ export function ageLabel(birth: Date | null, currentDay = today()): string {
   if (currentDay.slice(5) < dob.slice(5)) years--;
   return years < 1 ? 'Under 1 year' : `${years} ${years === 1 ? 'year' : 'years'} old`;
 }
+
+export function daysUntilBirthday(birth: Date | null, currentDay = today()): number | null {
+  if (!birth) return null;
+  const dob = dateKey(birth);
+  const current = new Date(currentDay + 'T00:00:00Z');
+  const month = Number(dob.slice(5, 7)) - 1;
+  const day = Number(dob.slice(8, 10));
+  const anniversary = (year: number) => {
+    // February 29 birthdays fall on February 28 in non-leap years.
+    const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(year, month, Math.min(day, lastDay)));
+  };
+  let next = anniversary(current.getUTCFullYear());
+  if (next < current) next = anniversary(current.getUTCFullYear() + 1);
+  return Math.round((next.getTime() - current.getTime()) / 86400000);
+}

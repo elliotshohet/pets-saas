@@ -1,3 +1,4 @@
+import { ActionIcon } from '@/components/action-icon';
 import Link from 'next/link';
 import { z } from 'zod';
 import { ownedDb } from '@/lib/owned-db';
@@ -65,6 +66,7 @@ export default async function MedicalHistory({
           <p>Every pet’s care, together. Find a visit, a clinic, or a detail you need.</p>
         </div>
         <Link href="/records/new" className="button secondary">
+          <ActionIcon label="Add record" />
           Add record
         </Link>
       </div>
@@ -108,7 +110,10 @@ export default async function MedicalHistory({
           <input name="to" type="date" defaultValue={query.to} />
         </label>
         <div className="history-filter-actions">
-          <button className="button primary">Apply filters</button>
+          <button className="button primary">
+            <ActionIcon label="Apply filters" />
+            Apply filters
+          </button>
           <Link href="/records" className="text-link">
             Clear filters
           </Link>
@@ -153,6 +158,7 @@ export default async function MedicalHistory({
                       className="button secondary small"
                       href={`/pets/${record.petId}/records/${record.id}/edit`}
                     >
+                      <ActionIcon label="Edit record" />
                       Edit record
                     </Link>
                     <Link

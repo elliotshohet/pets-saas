@@ -1,3 +1,4 @@
+import { ActionIcon } from '@/components/action-icon';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/session';
 import { onboardingData } from '@/lib/admin-operations';
@@ -37,12 +38,15 @@ export default async function Page() {
         </p>
         <div className="dashboard-actions">
           <Link className="button primary" href="/admin/accounts?filter=empty">
+            <ActionIcon label="No pets yet" />
             No pets yet
           </Link>
           <Link className="button secondary" href="/admin/accounts?filter=unrecorded">
+            <ActionIcon label="Pets without records" />
             Pets without records
           </Link>
           <Link className="button secondary" href="/admin/accounts?filter=activated">
+            <ActionIcon label="Recording care" />
             Recording care
           </Link>
         </div>

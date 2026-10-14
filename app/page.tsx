@@ -1,235 +1,339 @@
 import Link from 'next/link';
 import { getUser } from '@/lib/session';
-import { localEmailMode } from '@/lib/local-email-mode';
-import { ArrowUpRight, Check, FileHeart, Heart, PawPrint, Search } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  ClipboardList,
+  Check,
+  FileHeart,
+  Heart,
+  PawPrint,
+  FolderOpen,
+} from 'lucide-react';
 import { Brand } from '@/components/brand';
 
 export const metadata = {
-  title: 'A home for their health story',
-  description:
-    'Bring pet profiles and medical history together. A little organization, a lot more care.',
+  title: 'Pets · A home for their care',
+  description: 'Keep pet records, documents and everyday care together in one simple workspace.',
 };
+
 export default async function Landing() {
   const user = await getUser();
-  const entryHref = user ? '/dashboard' : '/sign-up';
-  const localDemo = localEmailMode();
+  const entryHref = user ? '/dashboard' : '/sign-in';
   return (
-    <div className="landing">
-      <header className="landing-nav">
+    <div className="pet-site">
+      <header className="site-nav">
         <Brand />
         <nav aria-label="Website navigation">
-          <Link className="landing-feature-link" href="#features">
-            Why Pets?
+          <Link className="site-nav-detail" href="#features">
+            Features
           </Link>
-          <Link className="landing-pricing-link" href="#pricing">
-            Pricing
+          <Link className="site-nav-detail" href="#how-it-works">
+            How it works
           </Link>
-          <Link className="button primary" href={entryHref}>
-            {user ? 'Go to dashboard' : 'Get started'} <ArrowUpRight size={17} />
+          <Link className="site-nav-login" href="/sign-in">
+            Sign in
+          </Link>
+          <Link className="site-button site-button-dark" href={entryHref}>
+            {user ? 'Your workspace' : 'Get started'} <ArrowUpRight size={16} aria-hidden="true" />
           </Link>
         </nav>
       </header>
       <main id="main" tabIndex={-1}>
-        <section className="landing-hero">
-          <div className="landing-hero-copy">
-            <p className="landing-eyebrow">
-              <Heart size={16} /> FOR THE ONES WHO MAKE YOUR DAY
+        <section className="site-hero">
+          <div className="site-hero-copy">
+            <p className="site-kicker">
+              <span /> A LITTLE ORGANIZATION. A LOT OF LOVE.
             </p>
             <h1>
-              Their whole story.
+              Big love.
               <br />
-              <span>A little closer.</span>
+              Little details.
+              <br />
+              <em>All together.</em>
             </h1>
-            <p className="landing-intro">
-              From the first checkup to everyday care. Give your pet’s health history a home, so you
-              can spend less time searching and more time together.
+            <p className="site-lead">
+              Their last vaccination. Their next checkup. That little thing you wanted to remember.
+              Give every part of your pet’s care a home.
             </p>
-            <div className="landing-cta-row">
-              <Link className="button primary" href={entryHref}>
-                {user ? 'Go to dashboard' : 'Get started'} <ArrowUpRight size={19} />
+            <div className="site-hero-actions">
+              <Link className="site-button site-button-dark" href={entryHref}>
+                {user ? 'Open your workspace' : 'Start your pet’s story'}{' '}
+                <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <Link className="landing-secondary-link" href="#features">
-                Take a look <span aria-hidden="true">↓</span>
+              <Link className="site-text-link" href="#how-it-works">
+                See how it works <span aria-hidden="true">↗</span>
               </Link>
             </div>
+            <p className="site-hero-note">
+              <Check size={15} aria-hidden="true" /> Free to use <span>·</span> No credit card
+              needed
+            </p>
           </div>
           <div
-            className="landing-preview"
-            aria-label="Illustrative pet profile with fictional sample records"
+            className="site-product-scene"
+            aria-label="Illustrative workspace with fictional pet care records"
           >
-            <div className="landing-orbit orbit-one" />
-            <div className="landing-orbit orbit-two" />
-            <span className="landing-floating-heart">
-              <Heart size={30} aria-hidden="true" />
-            </span>
-            <div className="landing-profile-preview">
-              <span className="landing-preview-label">A PEEK AT YOUR PET FAMILY</span>
-              <div className="landing-preview-pet">
-                <span className="landing-pet-avatar">
-                  <PawPrint size={37} />
-                </span>
-                <div>
-                  <h2>Meet Maple.</h2>
-                  <p>Golden retriever · Professional best friend</p>
+            <div className="site-scene-heading">
+              <PawPrint size={19} aria-hidden="true" /> A HOME FOR THEIR HEALTH STORY{' '}
+              <Heart size={18} aria-hidden="true" />
+            </div>
+            <div className="site-product-card">
+              <div className="site-card-top">
+                <span>MY PET FAMILY</span>
+                <span className="site-demo-label">Sample workspace</span>
+              </div>
+              <div className="site-profile">
+                <div className="site-profile-avatar">
+                  <PawPrint size={38} aria-hidden="true" />
                 </div>
+                <div>
+                  <h2>Maple</h2>
+                  <p>Golden retriever · Your best friend</p>
+                </div>
+                <Heart className="site-profile-heart" size={22} aria-hidden="true" />
               </div>
-              <div className="landing-preview-stats">
-                <span>
-                  <strong>One profile</strong>All their essentials
-                </span>
-                <span>
-                  <strong>A clear history</strong>Every chapter of care
-                </span>
+              <div className="site-preview-tabs">
+                <span>Overview</span>
+                <span className="selected">Care history</span>
+                <span>Documents</span>
               </div>
-              <h3>Little moments. Lasting care.</h3>
+              <div className="site-history-title">
+                <h3>Every chapter of care</h3>
+                <span>3 records</span>
+              </div>
               {[
-                ['Annual wellness visit', 'Checkup · Feeling good'],
-                ['A healthy start', 'Vaccination · Added to history'],
-                ['Everyday care notes', 'Your observations, remembered'],
-              ].map(([title, note]) => (
-                <div className="landing-preview-record" key={title}>
-                  <span>
-                    <Check size={17} />
+                {
+                  Icon: FileHeart,
+                  title: 'Annual wellness visit',
+                  detail: 'Checkup · Maple’s care history',
+                  tag: 'Checkup',
+                  tone: 'green',
+                },
+                {
+                  Icon: Heart,
+                  title: 'Vaccination record',
+                  detail: 'Original document attached',
+                  tag: 'Vaccination',
+                  tone: 'peach',
+                },
+                {
+                  Icon: FolderOpen,
+                  title: 'A note for next time',
+                  detail: 'Everyday observations, remembered',
+                  tag: 'Care note',
+                  tone: 'blue',
+                },
+              ].map(({ Icon, title, detail, tag, tone }) => (
+                <div className="site-history-row" key={title}>
+                  <span className={`site-record-icon ${tone}`}>
+                    <Icon size={20} aria-hidden="true" />
                   </span>
                   <div>
                     <strong>{title}</strong>
-                    <p>{note}</p>
+                    <p>{detail}</p>
                   </div>
+                  <span className="site-record-tag">{tag}</span>
                 </div>
               ))}
-              <p className="landing-preview-caption">
-                Fictional example · Your workspace starts fresh
-              </p>
+              <div className="site-card-bottom">
+                <span>
+                  <Check size={14} aria-hidden="true" /> Their story, in one place
+                </span>
+                <ArrowUpRight size={16} aria-hidden="true" />
+              </div>
             </div>
-            <div className="landing-floating-note">
-              <PawPrint size={19} />
-              <span>
-                A little care.
-                <br />
-                <strong>A happier life together.</strong>
+            <div className="site-reminder">
+              <span className="site-reminder-icon">
+                <ClipboardList size={19} aria-hidden="true" />
               </span>
+              <div>
+                <strong>One less thing to remember.</strong>
+                <p>A printable summary for your next vet visit.</p>
+              </div>
             </div>
+            <p className="site-scene-note">
+              A fictional example of what your workspace can become.
+            </p>
           </div>
         </section>
-        <section id="features" className="landing-features">
-          <p className="landing-eyebrow">LESS SCATTERED. MORE TOGETHER.</p>
-          <h2>A clearer picture of their care.</h2>
-          <p className="landing-section-intro">
-            The details that matter, right where you need them.
-          </p>
-          <div className="landing-feature-grid">
+        <div className="site-benefit-strip">
+          <span>
+            <PawPrint size={19} aria-hidden="true" /> Every pet, one workspace
+          </span>
+          <span>
+            <FileHeart size={19} aria-hidden="true" /> Records you can find
+          </span>
+          <span>
+            <ClipboardList size={19} aria-hidden="true" /> Care you can share
+          </span>
+        </div>
+        <section className="site-section" id="features">
+          <div className="site-section-heading">
+            <div>
+              <p className="site-kicker">BUILT AROUND REAL LIFE</p>
+              <h2>
+                Less scattered.
+                <br />
+                <em>More together.</em>
+              </h2>
+            </div>
+            <p>
+              Good care lives in the details. Keep them close, without adding another complicated
+              routine to your day.
+            </p>
+          </div>
+          <div className="site-feature-grid">
             {[
               {
                 Icon: PawPrint,
-                title: 'Every pet has a place.',
-                text: 'Keep profiles, birthdays and the little notes that make each member of your pet family unique.',
+                number: '01',
+                title: 'A place for every pet',
+                text: 'Photos, birthdays, allergies and everyday notes. The essentials that make caring for each pet a little easier.',
+                label: 'Their own little corner',
+                tone: 'green',
               },
               {
                 Icon: FileHeart,
-                title: 'Their history, together.',
-                text: 'Add checkups, vaccinations and treatments with dates, clinic details and your own notes.',
+                number: '02',
+                title: 'A history that stays together',
+                text: 'Keep checkups, vaccinations and original images alongside your records. Find the right detail before the next visit.',
+                label: 'Less searching. More knowing.',
+                tone: 'peach',
               },
               {
-                Icon: Search,
-                title: 'Find the moment that matters.',
-                text: 'Search and filter your records. Spend less time piecing together the last visit or looking for a detail.',
+                Icon: ClipboardList,
+                number: '03',
+                title: 'Make room for what’s next',
+                text: 'Track medications and observations, and take a printable care summary to your appointment.',
+                label: 'A little peace of mind',
+                tone: 'blue',
               },
-            ].map(({ Icon, title, text }) => (
-              <article key={title}>
-                <span className="landing-feature-icon">
-                  <Icon size={25} />
-                </span>
+            ].map(({ Icon, number, title, text, label, tone }) => (
+              <article className={`site-feature ${tone}`} key={number}>
+                <div className="site-feature-top">
+                  <Icon size={28} aria-hidden="true" />
+                  <span>{number}</span>
+                </div>
                 <h3>{title}</h3>
                 <p>{text}</p>
+                <div className="site-feature-label">
+                  {label}
+                  <ArrowUpRight size={18} aria-hidden="true" />
+                </div>
               </article>
             ))}
           </div>
         </section>
-        <section id="pricing" className="landing-pricing" aria-labelledby="pricing-title">
+        <section className="site-how site-section" id="how-it-works">
           <div>
-            <p className="landing-eyebrow">GOOD CARE SHOULD BE SIMPLE</p>
-            <h2 id="pricing-title">Free for life.</h2>
-            <p>Your pet’s story deserves a home. Keep it here without a subscription.</p>
-          </div>
-          <article className="landing-price-card">
-            <span className="badge neutral">One plan. Everything included.</span>
-            <h3>Pets, for your whole family.</h3>
-            <p className="landing-price">
-              $0 <span>forever</span>
-            </p>
-            <p>No subscription. No credit card required.</p>
-            <ul>
-              {[
-                'Pet profiles and photo uploads',
-                'Medical records and private documents',
-                'Care reminders and calendar export',
-                'Medication plans, weight and observation logs',
-                'Printable care summaries',
-              ].map((feature) => (
-                <li key={feature}>
-                  <Check size={18} aria-hidden="true" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            <Link className="button primary" href={entryHref}>
-              {user ? 'Go to dashboard' : 'Get started for free'} <ArrowUpRight size={18} />
+            <p className="site-kicker">START SMALL. FEEL ORGANIZED.</p>
+            <h2>
+              A home for their care,
+              <br />
+              <em>in three simple steps.</em>
+            </h2>
+            <Link className="site-text-link" href={entryHref}>
+              Let’s get you started <ArrowRight size={17} aria-hidden="true" />
             </Link>
-          </article>
+          </div>
+          <ol>
+            {[
+              [
+                'Make yourself at home',
+                'Enter your email to open a workspace. New accounts start with a clean slate.',
+              ],
+              [
+                'Introduce your pet family',
+                'Add a profile, a photo and the essentials. Give each pet a place of their own.',
+              ],
+              [
+                'Build their story as you go',
+                'Add records and documents, keep care notes close at hand.',
+              ],
+            ].map(([title, text], index) => (
+              <li key={title}>
+                <span>0{index + 1}</span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </section>
-        <section className="landing-bottom-cta">
-          <PawPrint size={34} aria-hidden="true" />
-          <h2>Made for your pet family.</h2>
-          <p>Start with an account. Add your first pet. Build their story, one record at a time.</p>
-          <Link className="button primary" href={entryHref}>
-            {user ? 'Go to dashboard' : 'Let’s get started'} <ArrowUpRight size={18} />
+        <section className="site-faq site-section" id="questions">
+          <div>
+            <p className="site-kicker">A FEW THINGS TO KNOW</p>
+            <h2>
+              Before you
+              <br />
+              <em>settle in.</em>
+            </h2>
+          </div>
+          <div>
+            {[
+              [
+                'Is Pets free to use?',
+                'Yes. The current app is free to use, with no subscription or credit card required.',
+              ],
+              [
+                'Can I bring my existing records?',
+                'Yes. Upload images to keep original documents with your pet’s records.',
+              ],
+              [
+                'How does signing in work?',
+                'Enter your email to open that account’s workspace. This is an email-only demo: emails are not verified, and anyone with access to the site can open an account by entering its email. Please use fictional records.',
+              ],
+              [
+                'Can I share a summary with my vet?',
+                'You can print or save a care summary as a PDF, download original documents,. Direct clinic integrations are not currently available.',
+              ],
+            ].map(([question, answer]) => (
+              <details key={question}>
+                <summary>
+                  {question}
+                  <span aria-hidden="true">+</span>
+                </summary>
+                <p>{answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+        <section className="site-final">
+          <PawPrint size={32} aria-hidden="true" />
+          <p className="site-kicker">FOR THE ONES WHO MAKE YOUR DAY</p>
+          <h2>
+            A little care.
+            <br />
+            <em>A whole lot of together.</em>
+          </h2>
+          <Link className="site-button site-button-dark" href={entryHref}>
+            {user ? 'Go to your workspace' : 'Start your pet’s story'}{' '}
+            <ArrowRight size={18} aria-hidden="true" />
           </Link>
         </section>
-        <section className="landing-faq" aria-label="Common questions">
-          <h2>A few things to know.</h2>
-          <details>
-            <summary>How much does Pets cost?</summary>
-            <p>
-              Pets is free for life. All current features are included, with no subscription or
-              credit card required.
-            </p>
-          </details>
-          <details>
-            <summary>How do I get started?</summary>
-            <p>
-              Open the login page to get started.{' '}
-              {localDemo
-                ? 'This local demo accepts an email without verification.'
-                : 'Create an account with your name, email and a password of 12–128 characters.'}{' '}
-              Your new workspace starts empty; add a pet, then add their care records.
-            </p>
-          </details>
-          <details>
-            <summary>Who can see my records?</summary>
-            <p>
-              Member operations are scoped to the selected account.{' '}
-              {localDemo &&
-                'In this local email-only demo, anyone can open any account by entering its email.'}{' '}
-              Authorized product administrators can view account information and care records.
-            </p>
-          </details>
-          <details>
-            <summary>Does Pets connect to my veterinarian?</summary>
-            <p>
-              Records are added manually. You can upload documents and set your own care reminders.
-              Clinic connections and automatic email/push delivery are not available.
-            </p>
-          </details>
-        </section>
       </main>
-      <footer className="landing-footer">
-        <Brand />
-        <p>Made for the ones who make your day.</p>
+      <footer className="site-footer">
+        <div>
+          <Brand />
+          <p>
+            A home for their care.
+            <br />
+            Made for your pet family.
+          </p>
+        </div>
         <nav aria-label="Footer navigation">
-          <Link href={entryHref}>{user ? 'Dashboard' : 'Get started'}</Link>
-          <Link href={user ? '/pets' : entryHref}>{user ? 'My pets' : 'Sign up'}</Link>
+          <Link href="#features">Features</Link>
+          <Link href="#how-it-works">How it works</Link>
+          <Link href="#questions">Questions</Link>
+          <Link href="/sign-in">Sign in</Link>
         </nav>
-        <small>Local prototype · Please use fictional records.</small>
+        <div className="site-footer-bottom">
+          <span>© {new Date().getFullYear()} Pets</span>
+          <span>Local demo · Please use fictional records.</span>
+          <Heart size={15} aria-hidden="true" />
+        </div>
       </footer>
     </div>
   );

@@ -1,17 +1,14 @@
-import { auth } from '../lib/auth';
 import { db } from '../lib/db';
 export async function demoOwner() {
-  const email = process.env.DEMO_EMAIL?.trim().toLowerCase();
-  const password = process.env.DEMO_PASSWORD;
-  if (!email || !password) throw new Error('Configure DEMO_EMAIL and DEMO_PASSWORD.');
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!email) throw new Error('Configure ADMIN_EMAIL.');
   let user = await db.user.findUnique({ where: { email } });
   if (!user) {
-    await auth.api.signUpEmail({ body: { name: 'Demo workspace', email, password } });
-    user = await db.user.findUniqueOrThrow({ where: { email } });
+    user = await db.user.create({
+      data: { id: crypto.randomUUID(), name: 'Demo workspace', email },
+    });
   }
-  if (email === (process.env.ADMIN_EMAIL || process.env.DEMO_EMAIL)?.trim().toLowerCase()) {
-    user = await db.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } });
-  }
+  user = await db.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } });
   return user;
 }
 async function assign() {

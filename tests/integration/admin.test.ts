@@ -1,7 +1,7 @@
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { db } from '../../lib/db';
-import { auth } from '../../lib/auth';
+import { openEmailSession } from '../../lib/email-access';
 import { isAdmin } from '../../lib/admin-access';
 import { adminOverview, adminAccounts, adminAccount } from '../../lib/admin-data';
 import { seedPopulation } from '../../prisma/population';
@@ -11,15 +11,7 @@ after(async () => {
   await db.$disconnect();
 });
 test('administrator access is enforced and signup cannot grant privileges', async () => {
-  const result = await auth.api.signUpEmail({
-    body: {
-      name: 'Admin test member',
-      email: `${crypto.randomUUID()}@example.test`,
-      password: 'Disposable-admin-test-123',
-      role: 'ADMIN',
-      isSynthetic: true,
-    } as { name: string; email: string; password: string },
-  });
+  const result = await openEmailSession(`${crypto.randomUUID()}@example.test`);
   ids.push(result.user.id);
   const user = await db.user.findUniqueOrThrow({ where: { id: result.user.id } });
   assert.equal(user.role, 'USER');
@@ -67,13 +59,10 @@ test('synthetic community is complete, coherent and idempotent', async () => {
   await seedPopulation();
   const users = await db.user.findMany({
     where: { isSynthetic: true },
-    include: { accounts: true, pets: { include: { records: true } } },
+    include: { pets: { include: { records: true } } },
   });
   assert.equal(users.length, 1000);
-  assert.equal(new Set(users.map((user) => user.accounts[0]?.password)).size, 1000);
-  const snapshot = users
-    .map((user) => [user.id, user.accounts[0].password, user.pets.length])
-    .sort();
+  const snapshot = users.map((user) => [user.id, user.pets.length]).sort();
   const now = new Date();
   assert.ok(users.some((user) => user.pets.length === 0));
   assert.ok(users.some((user) => user.pets.length > 2));
@@ -81,8 +70,6 @@ test('synthetic community is complete, coherent and idempotent', async () => {
   for (const user of users) {
     assert.equal(user.role, 'USER');
     assert.match(user.email, /@example\.test$/);
-    assert.equal(user.accounts.length, 1);
-    assert.ok(user.accounts[0].password);
     assert.ok(user.createdAt <= now);
     for (const pet of user.pets) {
       assert.equal(pet.ownerId, user.id);
@@ -100,12 +87,9 @@ test('synthetic community is complete, coherent and idempotent', async () => {
   await seedPopulation();
   const repeated = await db.user.findMany({
     where: { isSynthetic: true },
-    include: { accounts: true, _count: { select: { pets: true } } },
+    include: { _count: { select: { pets: true } } },
   });
-  assert.deepEqual(
-    repeated.map((user) => [user.id, user.accounts[0].password, user._count.pets]).sort(),
-    snapshot,
-  );
+  assert.deepEqual(repeated.map((user) => [user.id, user._count.pets]).sort(), snapshot);
 });
 
 test('admin details expose identities and care history only to administrators', async () => {
